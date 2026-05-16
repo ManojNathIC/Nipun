@@ -1,0 +1,15 @@
+{
+  "name": "nipun",
+  "version": "1.5.0",
+  "description": "AI-powered text improvement and code review assistant for developers",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ai",
+    "gemini"
+  ],
+  "author": "",
+  "license": "MIT"
+}

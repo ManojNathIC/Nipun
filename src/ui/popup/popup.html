@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nipun</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <img src="./icon.png" alt="Logo" class="logo" />
+          <h1 id="header-title">Nipun</h1>
+        </div>
+        <div class="mode-tabs">
+          <button class="tab-btn active" data-mode="writer">✏️ Writer</button>
+          <button class="tab-btn" data-mode="reviewer">🔍 MR Review</button>
+        </div>
+      </header>
+
+      <!-- Writer Mode -->
+      <div id="mode-writer" class="mode-panel active">
+        <main id="chat-messages">
+          <div class="message incoming">
+            <p>
+              Hello! I can help you rewrite or improve any text. What's on your
+              mind?
+            </p>
+          </div>
+        </main>
+        <footer>
+          <div class="input-area">
+            <textarea
+              id="user-input"
+              placeholder="Paste your text or ask a question..."
+              rows="2"
+            ></textarea>
+            <button id="send-btn" aria-label="Send">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </footer>
+      </div>
+
+      <!-- Reviewer Mode -->
+      <div id="mode-reviewer" class="mode-panel">
+        <main id="review-output">
+          <div class="review-placeholder">
+            <span>🔍</span>
+            <p>
+              Paste a GitHub PR URL and click Review — no copy-pasting code
+              needed.
+            </p>
+          </div>
+        </main>
+
+        <footer>
+          <div class="input-area reviewer-input">
+            <input
+              id="pr-url-input"
+              type="url"
+              placeholder="https://github.com/org/repo/pull/123"
+            />
+            <button id="review-btn" aria-label="Review PR">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script src="api.js"></script>
+    <script src="github-api.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MR Reviewer</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="sp-container">
+      <header class="sp-header">
+        <div class="sp-brand">
+          <img src="./icon.png" alt="Logo" class="sp-logo" />
+          <h1>MR Reviewer</h1>
+        </div>
+        <p class="sp-subtitle">Powered by Gemini AI</p>
+      </header>
+
+      <div class="sp-tabs">
+        <button class="sp-tab active" data-tab="review">Review</button>
+        <button class="sp-tab" data-tab="insights">📊 Insights</button>
+      </div>
+
+      <!-- Review Tab -->
+      <div id="tab-review" class="sp-tab-content active">
+        <div id="sp-review-output" class="sp-output">
+          <div class="sp-placeholder">
+            <span>🔍</span>
+            <p>Paste a GitHub PR URL below and click Review.</p>
+          </div>
+        </div>
+
+        <details class="sp-config-section">
+          <summary>⚙ Review Config</summary>
+          <div class="sp-config-body">
+            <p class="sp-config-hint">
+              Paste your project-specific <code>review-config.json</code> below
+              to override the default rules.
+            </p>
+            <textarea
+              id="sp-config-input"
+              rows="8"
+              placeholder='{ "projectContext": "...", "checklist": [...], "outputFormat": "..." }'
+            ></textarea>
+            <div class="sp-config-actions">
+              <button id="sp-config-save">Save Config</button>
+              <button id="sp-config-reset">Reset to Default</button>
+            </div>
+            <p id="sp-config-status" class="sp-config-status"></p>
+          </div>
+        </details>
+
+        <footer class="sp-footer">
+          <div class="sp-input-row">
+            <input
+              id="sp-pr-url"
+              type="url"
+              placeholder="https://github.com/org/repo/pull/123"
+              autocomplete="off"
+            />
+            <button id="sp-review-btn" aria-label="Review PR">Review</button>
+          </div>
+        </footer>
+      </div>
+
+      <!-- Insights Tab -->
+      <div id="tab-insights" class="sp-tab-content">
+        <div class="sp-output" id="sp-insights-output">
+          <div class="sp-placeholder">
+            <span>📊</span>
+            <p>
+              Analyse developer behaviour and repeated mistakes across all
+              reviews.
+            </p>
+          </div>
+        </div>
+        <footer class="sp-footer">
+          <div class="sp-input-row">
+            <input
+              id="sp-insights-author"
+              type="text"
+              placeholder="GitHub username (leave blank for all)"
+              autocomplete="off"
+            />
+            <button id="sp-insights-btn" aria-label="Load Insights">
+              Analyse
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="github-api.js"></script>
+    <script src="posthog.js"></script>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

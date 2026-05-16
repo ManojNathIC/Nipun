@@ -1,0 +1,168 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: AI Code Review
+        uses: actions/github-script@v7
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          POSTHOG_HOST: https://us.i.posthog.com
+        with:
+          script: |
+            const { execSync } = require('child_process');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+            const prAuthor = context.payload.pull_request.user.login;
+
+            // ── 1. Fetch PR diff (only modified lines) ──────────────────────
+            const filesRes = await github.rest.pulls.listFiles({
+              owner, repo, pull_number: prNumber, per_page: 100
+            });
+
+            const reviewableFiles = filesRes.data.filter(f => f.patch);
+            if (!reviewableFiles.length) {
+              console.log('No reviewable diff found.');
+              return;
+            }
+
+            const diff = reviewableFiles
+              .map(f => `### ${f.status.toUpperCase()}: ${f.filename}\n${f.patch}`)
+              .join('\n\n');
+
+            // ── 2. Load review config ────────────────────────────────────────
+            let reviewConfig;
+            try {
+              const configFile = await github.rest.repos.getContent({
+                owner, repo, path: '.github/review-config.json'
+              });
+              reviewConfig = JSON.parse(Buffer.from(configFile.data.content, 'base64').toString());
+            } catch {
+              // Fallback minimal config
+              reviewConfig = {
+                projectContext: 'You are a senior code reviewer. Review only the changed lines in the diff.',
+                checklist: [
+                  'No use of any type in TypeScript',
+                  'No hardcoded magic numbers',
+                  'Proper error handling',
+                  'No memory leaks or missing cleanup',
+                  'Single responsibility principle',
+                  'No console.log left in production code',
+                ],
+                outputFormat: `Respond in this format:
+            ## Merge Verdict
+            APPROVED | APPROVED WITH SUGGESTIONS | CHANGES REQUESTED | NOT READY FOR MERGE
+            One sentence justification.
+
+            ## Summary
+            2-3 sentences about the overall change quality.
+
+            ## Findings
+            For each issue:
+            #### [SEVERITY] Title
+            **Location**: file:line
+            **Issue**: what is wrong
+            **Fix**: how to fix it
+
+            Severity levels: [CRITICAL] [MAJOR] [MEDIUM] [MINOR] [SUGGESTION]
+            Only flag issues in the modified lines, not pre-existing code.`
+              };
+            }
+
+            // ── 3. Check for previous review (from PR comments) ─────────────
+            let previousReview = '';
+            const comments = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber, per_page: 100
+            });
+            const prevComment = comments.data
+              .filter(c => c.body.startsWith('🤖 **AI Code Review'))
+              .pop();
+            if (prevComment) previousReview = prevComment.body;
+
+            // ── 4. Build prompt ──────────────────────────────────────────────
+            const checklist = reviewConfig.checklist
+              .map((item, i) => `**${i + 1}.** ${item}`)
+              .join('\n');
+
+            const prompt = `${reviewConfig.projectContext}
+
+            ${previousReview ? `## PREVIOUS REVIEW FINDINGS\nYou MUST begin with a "## Previous Findings Status" section listing every previous finding as ✅ FIXED or ❌ STILL OPEN.\n\`\`\`\n${previousReview.slice(0, 3000)}\n\`\`\`\n` : ''}
+            PR Title: "${prTitle}"
+            PR Author: @${prAuthor}
+
+            ## Changed code to review
+            \`\`\`diff
+            ${diff.slice(0, 50000)}
+            \`\`\`
+
+            ## Checklist
+            ${checklist}
+
+            ## Output format
+            ${reviewConfig.outputFormat}`;
+
+            // ── 5. Call Gemini ───────────────────────────────────────────────
+            const geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+              }
+            );
+
+            if (!geminiRes.ok) {
+              const err = await geminiRes.json();
+              core.setFailed(`Gemini API error: ${err.error?.message}`);
+              return;
+            }
+
+            const geminiData = await geminiRes.json();
+            const reviewText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!reviewText) {
+              core.setFailed('Empty response from Gemini.');
+              return;
+            }
+
+            // ── 6. Post comment on PR ────────────────────────────────────────
+            const comment = `🤖 **AI Code Review**\n\n${reviewText}\n\n---\n*Reviewed by Gemini AI • [DevAssist]*`;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: prNumber, body: comment
+            });
+
+            console.log('✅ Review posted to PR #' + prNumber);
+
+            // ── 7. Capture to PostHog (optional) ────────────────────────────
+            if (process.env.POSTHOG_API_KEY) {
+              const prKey = `${owner}_${repo}_${prNumber}`;
+              await fetch(`${process.env.POSTHOG_HOST}/capture/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.POSTHOG_API_KEY,
+                  event: 'pr_reviewed',
+                  distinct_id: prAuthor,
+                  properties: {
+                    pr_key: prKey,
+                    pr_url: context.payload.pull_request.html_url,
+                    pr_author_username: prAuthor,
+                    reviewer_username: 'github-actions[bot]',
+                    review_text: reviewText,
+                    $process_person_profile: false,
+                  }
+                })
+              });
+            }

@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Nipun",
+  "version": "1.5",
+  "description": "AI-powered text improvement and code review assistant for developers using Google Gemini.",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "scripting",
+    "sidePanel",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://github.com/*",
+    "https://api.github.com/*",
+    "https://*.i.posthog.com/*",
+    "https://app.posthog.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {},
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/pull/*"],
+      "js": ["api.js", "github-api.js", "github-review.js"],
+      "css": ["github-review.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
