@@ -7,7 +7,9 @@ Nipun is an AI-powered text improvement and code review assistant for developers
 - **✏️ Smart Writer**: Improve PR descriptions, emails, and documentation directly from any text area.
 - **🔍 PR Reviewer**: Automated AI reviews for GitHub Pull Requests with multi-batch support.
 - **🚀 Incremental Reviews**: Tracks previous reviews and only flags new issues or verifies fixes.
-- **📊 PostHog Integration**: Persistent review history and comparisons.
+- **📊 Team Insights**: Analyse developer behavior and repeated mistakes across all reviews.
+- **⚙️ Sidepanel First**: A powerful, multi-tab sidepanel for a seamless development workflow.
+- **🔕 Finding Muting**: "Ignore" specific review findings to keep your feedback loop focused.
 
 ---
 
@@ -132,8 +134,8 @@ The review prompt and checklist are defined in `review-config.json`. This file i
 
 To customise for your project, either:
 
-- Edit `review-config.json` directly before building, or
-- Paste a custom config JSON in the sidepanel "⚙ Review Config" section at runtime (saved to local storage, overrides the bundled default)
+- Edit `src/review-config.json` directly before building, or
+- Paste a custom config JSON in the sidepanel **⚙ Config** tab at runtime (saved to local storage, overrides the bundled default).
 
 ---
 

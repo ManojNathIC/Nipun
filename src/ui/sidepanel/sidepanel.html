@@ -11,14 +11,39 @@
       <header class="sp-header">
         <div class="sp-brand">
           <img src="./icon.png" alt="Logo" class="sp-logo" />
-          <h1>MR Reviewer</h1>
+          <h1 id="sp-header-title">MR Reviewer</h1>
         </div>
         <p class="sp-subtitle">Powered by Gemini AI</p>
       </header>
 
       <div class="sp-tabs">
-        <button class="sp-tab active" data-tab="review">Review</button>
+        <button class="sp-tab active" data-tab="review">🔍 Review</button>
         <button class="sp-tab" data-tab="insights">📊 Insights</button>
+        <button class="sp-tab" data-tab="writer">✏️ Writer</button>
+        <button class="sp-tab" data-tab="config">⚙ Config</button>
+      </div>
+
+      <!-- Writer Tab -->
+      <div id="tab-writer" class="sp-tab-content">
+        <div id="sp-chat-messages" class="sp-output">
+          <div class="sp-placeholder">
+            <span>✏️</span>
+            <p>
+              Hello! I can help you rewrite or improve any text. What's on your
+              mind?
+            </p>
+          </div>
+        </div>
+        <footer class="sp-footer">
+          <div class="sp-input-row">
+            <textarea
+              id="sp-user-input"
+              placeholder="Paste your text or ask a question..."
+              rows="1"
+            ></textarea>
+            <button id="sp-send-btn" aria-label="Send">Send</button>
+          </div>
+        </footer>
       </div>
 
       <!-- Review Tab -->
@@ -29,26 +54,6 @@
             <p>Paste a GitHub PR URL below and click Review.</p>
           </div>
         </div>
-
-        <details class="sp-config-section">
-          <summary>⚙ Review Config</summary>
-          <div class="sp-config-body">
-            <p class="sp-config-hint">
-              Paste your project-specific <code>review-config.json</code> below
-              to override the default rules.
-            </p>
-            <textarea
-              id="sp-config-input"
-              rows="8"
-              placeholder='{ "projectContext": "...", "checklist": [...], "outputFormat": "..." }'
-            ></textarea>
-            <div class="sp-config-actions">
-              <button id="sp-config-save">Save Config</button>
-              <button id="sp-config-reset">Reset to Default</button>
-            </div>
-            <p id="sp-config-status" class="sp-config-status"></p>
-          </div>
-        </details>
 
         <footer class="sp-footer">
           <div class="sp-input-row">
@@ -87,6 +92,34 @@
             </button>
           </div>
         </footer>
+      </div>
+
+      <!-- Config Tab -->
+      <div id="tab-config" class="sp-tab-content">
+        <div class="sp-config-container">
+          <h3>Review Configuration</h3>
+          <p class="sp-config-hint">
+            Paste your project-specific <code>review-config.json</code> below to
+            override the default rules.
+          </p>
+          <textarea
+            id="sp-config-input"
+            rows="15"
+            placeholder='{ "projectContext": "...", "checklist": [...], "outputFormat": "..." }'
+          ></textarea>
+          <div class="sp-config-actions">
+            <button id="sp-config-save" class="sp-config-btn">
+              Save Config
+            </button>
+            <button id="sp-config-reset" class="sp-config-btn secondary">
+              Reset to Default
+            </button>
+            <button id="sp-clear-ignored" class="sp-config-btn secondary">
+              🗑 Clear Ignored
+            </button>
+          </div>
+          <p id="sp-config-status" class="sp-config-status"></p>
+        </div>
       </div>
     </div>
 

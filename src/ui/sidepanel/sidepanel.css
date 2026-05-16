@@ -181,7 +181,48 @@ body {
   margin: 4px 0;
 }
 .sp-review-result li {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+}
+
+.sp-finding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 16px;
+  border-left: 4px solid #3b82f6;
+}
+
+.sp-finding-header.ignored {
+  opacity: 0.5;
+  border-left-color: #cbd5e1;
+}
+
+.sp-finding-header.ignored h4 {
+  text-decoration: line-through;
+}
+
+.sp-finding-header h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.sp-ignore-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.sp-ignore-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .sp-review-result code {
@@ -233,65 +274,81 @@ body {
   border-radius: 10px;
 }
 
-/* Config Section */
-.sp-config-section {
-  border-top: 1px solid #e5e7eb;
-  padding: 8px 12px;
-  font-size: 13px;
-}
-.sp-config-section summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #6b7280;
-  user-select: none;
-  padding: 4px 0;
-}
-.sp-config-body {
-  padding-top: 8px;
+/* Config Tab Content */
+.sp-config-container {
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  flex: 1;
 }
+
+.sp-config-container h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 .sp-config-hint {
   color: #6b7280;
   font-size: 12px;
-  margin: 0;
+  margin-bottom: 8px;
 }
-.sp-config-hint code {
-  background: #f3f4f6;
-  padding: 1px 4px;
-  border-radius: 3px;
-}
+
 #sp-config-input {
   width: 100%;
-  font-family: monospace;
+  flex: 1;
+  font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 11px;
-  padding: 6px;
+  padding: 10px;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  resize: vertical;
-  box-sizing: border-box;
+  border-radius: 8px;
+  resize: none;
+  background: #fdfdfd;
 }
+
 .sp-config-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 8px;
 }
-.sp-config-actions button {
+
+.sp-config-btn {
   flex: 1;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
   cursor: pointer;
-  font-size: 12px;
-  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 500;
+  background: white;
+  transition: all 0.2s;
 }
-.sp-config-actions button:hover {
-  background: #f3f4f6;
+
+#sp-config-save {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
+
+#sp-config-save:hover {
+  background: #2563eb;
+}
+
+.sp-config-btn.secondary {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.sp-config-btn.secondary:hover {
+  background: #f1f5f9;
+}
+
 .sp-config-status {
   font-size: 12px;
   min-height: 16px;
-  margin: 0;
+  margin-top: 4px;
+  text-align: center;
 }
 
 /* Tabs */
@@ -424,4 +481,72 @@ body {
 
 #sp-insights-author:focus {
   border-color: #7c3aed;
+}
+
+/* Writer Tab - Chat Styles */
+#sp-user-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+  min-height: 40px;
+  max-height: 120px;
+}
+
+#sp-user-input:focus {
+  border-color: var(--primary);
+}
+
+.sp-message {
+  margin-bottom: 16px;
+  max-width: 90%;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sp-message p {
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.sp-message.outgoing {
+  margin-left: auto;
+}
+
+.sp-message.outgoing p {
+  background: var(--primary);
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.sp-message.incoming p {
+  background: #f3f4f6;
+  color: var(--text-main);
+  border-bottom-left-radius: 2px;
+}
+
+.sp-message.loading p {
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+#sp-send-btn {
+  padding: 9px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+#sp-send-btn:hover {
+  background: #2563eb;
 }

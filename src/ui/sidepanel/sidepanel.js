@@ -12,8 +12,69 @@ const prUrlInput = document.getElementById("sp-pr-url");
 const reviewBtn = document.getElementById("sp-review-btn");
 const reviewOutput = document.getElementById("sp-review-output");
 
-function renderMarkdown(md) {
-  return md
+// --- Writer Tab Logic ---
+const chatMessages = document.getElementById("sp-chat-messages");
+const userInput = document.getElementById("sp-user-input");
+const sendBtn = document.getElementById("sp-send-btn");
+
+function appendMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = `sp-message ${type}`;
+  div.innerHTML = `<p>${text.replace(/\n/g, "<br>")}</p>`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return div;
+}
+
+async function handleSend() {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  userInput.value = "";
+  userInput.disabled = true;
+  sendBtn.disabled = true;
+
+  // Clear placeholder if it's the first message
+  const placeholder = chatMessages.querySelector(".sp-placeholder");
+  if (placeholder) placeholder.remove();
+
+  appendMessage(text, "outgoing");
+  const loading = appendMessage("AI is thinking...", "incoming loading");
+
+  try {
+    const response = await fetchGeminiResponse(text);
+    loading.remove();
+    appendMessage(response, "incoming");
+  } catch (error) {
+    loading.remove();
+    appendMessage(`Error: ${error.message}`, "incoming");
+  } finally {
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    userInput.focus();
+  }
+}
+
+sendBtn.addEventListener("click", handleSend);
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+
+function renderMarkdown(md, ignoredFindings = []) {
+  // Generate a simple hash for a finding to allow muting
+  const getHash = (text) => {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = (hash << 5) - hash + text.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash.toString();
+  };
+
+  let html = md
     .replace(/^## (.+)$/gm, "<h3>$1</h3>")
     .replace(/^### (.+)$/gm, "<h4>$1</h4>")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
@@ -22,6 +83,23 @@ function renderMarkdown(md) {
     .replace(/(<li>[\s\S]*?<\/li>)/g, "<ul>$1</ul>")
     .replace(/\n{2,}/g, "<br><br>")
     .replace(/\n/g, "<br>");
+
+  // Inject "Ignore" buttons for findings [SEVERITY]
+  html = html.replace(/<h4>(.*?\[(CRITICAL|MAJOR|MEDIUM|MINOR|SUGGESTION)\].*?)<\/h4>/gi, (match, title) => {
+    const hash = getHash(title);
+    const isIgnored = ignoredFindings.includes(hash);
+    
+    return `
+      <div class="sp-finding-header ${isIgnored ? "ignored" : ""}" data-hash="${hash}">
+        <h4>${title}</h4>
+        <button class="sp-ignore-btn" title="Stop showing this finding" data-hash="${hash}">
+          ${isIgnored ? "✅ Ignored" : "🔕 Ignore"}
+        </button>
+      </div>
+    `;
+  });
+
+  return html;
 }
 
 /**
@@ -221,7 +299,7 @@ async function handleReview() {
           <strong>${meta.title}</strong>
           <span>${reviewableFiles.length} file(s) • cached review for this commit</span>
         </div>
-        <div class="sp-review-result">${renderMarkdown(cachedReview)}</div>
+        <div class="sp-review-result">${renderMarkdown(cachedReview, (await chrome.storage.local.get("ignoredFindings")).ignoredFindings)}</div>
       `;
       reviewBtn.disabled = false;
       return;
@@ -281,7 +359,7 @@ async function handleReview() {
         <strong>${meta.title}</strong>
         <span>${reviewableFiles.length} file(s) reviewed${totalChunks > 1 ? ` in ${totalChunks} batches` : ""}</span>
       </div>
-      <div class="sp-review-result">${renderMarkdown(fullReview)}</div>
+      <div class="sp-review-result">${renderMarkdown(fullReview, (await chrome.storage.local.get("ignoredFindings")).ignoredFindings)}</div>
     `;
 
     // Post summary to GitHub PR if enabled
@@ -327,6 +405,31 @@ prUrlInput.addEventListener("keydown", (e) => {
 
 prUrlInput.focus();
 
+// Handle "Ignore" clicks
+reviewOutput.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("sp-ignore-btn")) {
+    const hash = e.target.dataset.hash;
+    const { ignoredFindings = [] } = await chrome.storage.local.get("ignoredFindings");
+    
+    if (!ignoredFindings.includes(hash)) {
+      ignoredFindings.push(hash);
+      await chrome.storage.local.set({ ignoredFindings });
+    }
+
+    // Visually hide it immediately
+    const container = e.target.closest(".sp-finding-header");
+    if (container) {
+      const findingContent = container.nextElementSibling;
+      container.style.opacity = "0.3";
+      container.style.pointerEvents = "none";
+      e.target.textContent = "✅ Ignored";
+      if (findingContent && findingContent.tagName !== "DIV") {
+         // Optionally hide the details too
+      }
+    }
+  }
+});
+
 // --- Review Config ---
 const configInput = document.getElementById("sp-config-input");
 const configSaveBtn = document.getElementById("sp-config-save");
@@ -368,9 +471,30 @@ configResetBtn.addEventListener("click", () => {
   });
 });
 
+const clearIgnoredBtn = document.getElementById("sp-clear-ignored");
+clearIgnoredBtn.addEventListener("click", () => {
+  chrome.storage.local.remove("ignoredFindings", () => {
+    configStatus.textContent = "✅ Ignored findings cleared.";
+    configStatus.style.color = "green";
+    setTimeout(() => (configStatus.textContent = ""), 3000);
+  });
+});
+
 // --- Tab switching ---
+const spHeaderTitle = document.getElementById("sp-header-title");
+const tabTitles = {
+  writer: "Nipun",
+  review: "MR Reviewer",
+  insights: "Team Insights",
+  config: "Settings",
+};
+
+// Initial title set
+spHeaderTitle.textContent = tabTitles.review;
+
 document.querySelectorAll(".sp-tab").forEach((tab) => {
   tab.addEventListener("click", () => {
+    const mode = tab.dataset.tab;
     document
       .querySelectorAll(".sp-tab")
       .forEach((t) => t.classList.remove("active"));
@@ -378,7 +502,12 @@ document.querySelectorAll(".sp-tab").forEach((tab) => {
       .querySelectorAll(".sp-tab-content")
       .forEach((c) => c.classList.remove("active"));
     tab.classList.add("active");
-    document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
+    document.getElementById(`tab-${mode}`).classList.add("active");
+
+    // Update header title dynamically
+    if (tabTitles[mode]) {
+      spHeaderTitle.textContent = tabTitles[mode];
+    }
   });
 });
 

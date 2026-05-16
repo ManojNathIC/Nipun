@@ -39,6 +39,11 @@ async function fetchGeminiResponse(prompt) {
               ],
             },
           ],
+          generationConfig: {
+            temperature: 0.1, // Near-deterministic for consistency
+            topP: 0.95,
+            topK: 40
+          }
         }),
       });
 
@@ -184,6 +189,11 @@ async function fetchGeminiReview(diff, prTitle = "", previousReview = "", isIncr
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0, // Maximum consistency for code reviews
+            topP: 1,
+            topK: 1
+          }
         }),
       });
 
