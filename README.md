@@ -45,6 +45,16 @@ Nipun is an AI-powered text improvement and code review assistant for developers
    GEMINI_API_KEY=your_gemini_key
    GITHUB_TOKEN=your_github_token
 
+   # PostHog for persistence & incremental reviews
+   POSTHOG_API_KEY=your_project_api_key
+   POSTHOG_PERSONAL_API_KEY=your_personal_key
+   POSTHOG_PROJECT_ID=your_project_id
+   POSTHOG_HOST=https://us.i.posthog.com
+
+   # Branding
+   AI_DISPLAY_NAME=Nipun
+
+   # Review Settings
    MIN_SEVERITY_TO_BLOCK=medium
    POST_REVIEW_COMMENT=true
    ```
@@ -69,18 +79,21 @@ Nipun is designed to be a continuous partner in your development lifecycle. Unli
 
 - **Verification of Fixes**: When you push a fix for an issue flagged in a previous review, Nipun specifically checks the new code to confirm the fix is correct and hasn't introduced regressions.
 - **Still-Open Tracking**: If a previous issue remains unaddressed in the latest commit, Nipun keeps it visible as "STILL OPEN" instead of letting it drop off the radar.
-- **Strict Isolation**: By comparing your current HEAD against the last reviewed commit, Nipun ensures it only comments on your *new* changes, preventing it from "hallucinating" or re-flagging issues in untouched parts of the codebase.
+- **Strict Isolation**: By comparing your current HEAD against the last reviewed commit, Nipun ensures it only comments on your _new_ changes, preventing it from "hallucinating" or re-flagging issues in untouched parts of the codebase.
 
 ## 📊 PostHog Integration
 
 Nipun uses PostHog to maintain a persistent memory of your Pull Requests. This allows the extension to retrieve previous review findings even across different sessions or browser restarts.
 
 ### Why PostHog?
+
 - **Persistence**: Store and retrieve review metadata securely.
 - **Comparison**: Enables the "Incremental Review" mode by comparing the current PR state with the last known review stored in PostHog.
 
 ### Setup PostHog
+
 To enable these features, you'll need a PostHog project:
+
 1. Create a project at [PostHog.com](https://posthog.com).
 2. Get your **Project API Key** from Settings.
 3. Get your **Personal API Key** (for data retrieval) from your User Settings.
@@ -99,17 +112,17 @@ Nipun uses a dual-storage strategy to ensure speed and persistence:
 
 All configuration lives in `.env`. Run `npm run build` after any change.
 
-| Variable                   | Status    | Default  | Description                                                                                                                                                                            |
-| -------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GEMINI_API_KEY`           | Mandatory | —        | Google Gemini API key (Required for all AI reviews).                                                                                                                                   |
-| `GITHUB_TOKEN`             | Optional  | —        | GitHub personal access token (Required for private repos and posting PR comments).                                                                                                     |
-| `POSTHOG_API_KEY`          | Mandatory | —        | Your PostHog Project API Key (Required for persistence and history).                                                                                                                   |
-| `POSTHOG_PERSONAL_API_KEY` | Mandatory | —        | Your PostHog Personal API Key (Required for history retrieval).                                                                                                                        |
-| `POSTHOG_PROJECT_ID`       | Mandatory | —        | Your PostHog Project ID.                                                                                                                                                               |
-| `MIN_SEVERITY_TO_BLOCK`    | Optional  | `medium` | Minimum severity included in the PR comment posted to GitHub. Options: `critical`, `major`, `medium`, `minor`, `suggestion`.                                                           |
-| `POST_REVIEW_COMMENT`      | Optional  | `true`   | Whether to auto-post the review summary as a PR comment.                                                                                                                               |
-| `AI_DISPLAY_NAME`          | Optional  | `Nipun`  | The persona name used in PR comment headers and signatures.                                                                                                                            |
-| `POSTHOG_HOST`             | Optional  | `...`    | Your PostHog host (usually `https://us.i.posthog.com` or `https://eu.i.posthog.com`).                                                                                                  |
+| Variable                   | Status    | Default  | Description                                                                                                                  |
+| -------------------------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`           | Mandatory | —        | Google Gemini API key (Required for all AI reviews).                                                                         |
+| `GITHUB_TOKEN`             | Optional  | —        | GitHub personal access token (Required for private repos and posting PR comments).                                           |
+| `POSTHOG_API_KEY`          | Mandatory | —        | Your PostHog Project API Key (Required for persistence and history).                                                         |
+| `POSTHOG_PERSONAL_API_KEY` | Mandatory | —        | Your PostHog Personal API Key (Required for history retrieval).                                                              |
+| `POSTHOG_PROJECT_ID`       | Mandatory | —        | Your PostHog Project ID.                                                                                                     |
+| `MIN_SEVERITY_TO_BLOCK`    | Optional  | `medium` | Minimum severity included in the PR comment posted to GitHub. Options: `critical`, `major`, `medium`, `minor`, `suggestion`. |
+| `POST_REVIEW_COMMENT`      | Optional  | `true`   | Whether to auto-post the review summary as a PR comment.                                                                     |
+| `AI_DISPLAY_NAME`          | Optional  | `Nipun`  | The persona name used in PR comment headers and signatures.                                                                  |
+| `POSTHOG_HOST`             | Optional  | `...`    | Your PostHog host (usually `https://us.i.posthog.com` or `https://eu.i.posthog.com`).                                        |
 
 ---
 
@@ -136,3 +149,17 @@ To customise for your project, either:
 - `.env` is gitignored — never commit it
 - Only commit `.env.example` as a template
 - `dist/` contains built files with injected secrets — also gitignored
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Whether you're fixing a bug, suggesting a feature, or improving documentation:
+
+1. **Open an Issue**: For bugs or feature requests, please [open an issue](https://github.com/ManojNathIC/Nipun/issues).
+2. **Submit a Pull Request**:
+   - Fork the repository.
+   - Create a new branch (`git checkout -b feature/your-feature`).
+   - Commit your changes.
+   - Push to the branch (`git push origin feature/your-feature`).
+   - [Open a Pull Request](https://github.com/ManojNathIC/Nipun/pulls).
